@@ -1,4 +1,4 @@
-# go-vpay
+# go-xpay
 
 微信小程序【虚拟支付】（xpay）服务端 API 的 Go SDK，零第三方依赖，仅使用标准库。
 
@@ -14,7 +14,7 @@
 ## 安装
 
 ```bash
-go get github.com/roc-ray/go-vpay
+go get github.com/roc-ray/go-xpay
 ```
 
 ## 快速开始
@@ -26,13 +26,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/roc-ray/go-vpay"
+	"github.com/roc-ray/go-xpay"
 )
 
 func main() {
-	client, err := wxvpay.New(wxvpay.Config{
+	client, err := xpay.New(xpay.Config{
 		AppKey: "your-vpay-app-key",  // 虚拟支付 AppKey（小程序后台「虚拟支付-支付基础配置」）
-		Env:    wxvpay.EnvProduction, // 0-正式（默认），1-沙箱需另配 SandboxKey
+		Env:    xpay.EnvProduction, // 0-正式（默认），1-沙箱需另配 SandboxKey
 		// access_token 统一由外部传入（SDK 不负责获取），如内部统一 token 服务：
 		TokenProvider: func(ctx context.Context) (string, error) {
 			return fetchAccessTokenFromInternalService()
@@ -43,7 +43,7 @@ func main() {
 	}
 
 	// 查询代币余额（需要用户 session_key 参与用户态签名）
-	balance, err := client.QueryUserBalance(context.Background(), sessionKey, &wxvpay.QueryUserBalanceReq{
+	balance, err := client.QueryUserBalance(context.Background(), sessionKey, &xpay.QueryUserBalanceReq{
 		Openid: "user-openid",
 		UserIP: "1.2.3.4",
 	})
@@ -60,8 +60,8 @@ func main() {
 
 | Env | 环境 | AppKey 来源 |
 |---|---|---|
-| `wxvpay.EnvProduction` (0) | 正式 | `Config.AppKey` |
-| `wxvpay.EnvSandbox` (1) | 沙箱 | `Config.SandboxKey` |
+| `xpay.EnvProduction` (0) | 正式 | `Config.AppKey` |
+| `xpay.EnvSandbox` (1) | 沙箱 | `Config.SandboxKey` |
 
 ## API 一览
 
@@ -103,24 +103,24 @@ func main() {
 
 ## 错误处理
 
-所有接口在微信返回 `errcode != 0` 时返回 `*wxvpay.APIError`，并提供常用错误码判定：
+所有接口在微信返回 `errcode != 0` 时返回 `*xpay.APIError`，并提供常用错误码判定：
 
 ```go
-_, err := client.PresentCurrency(ctx, &wxvpay.PresentCurrencyReq{
+_, err := client.PresentCurrency(ctx, &xpay.PresentCurrencyReq{
 	Openid:  openid,
 	OrderID: "present-1001",
 	Amount:  100,
 })
 if err != nil {
 	// 268490004 重复操作：赠送/代币支付/广告金充值接口返回时表示之前已成功，可视为成功
-	if wxvpay.IsDuplicateOperation(err) {
+	if xpay.IsDuplicateOperation(err) {
 		return
 	}
 	// 268490009 session_key 过期，应引导用户重新登录
-	if wxvpay.IsSessionKeyExpired(err) {
+	if xpay.IsSessionKeyExpired(err) {
 		return
 	}
-	if e, ok := wxvpay.AsAPIError(err); ok {
+	if e, ok := xpay.AsAPIError(err); ok {
 		fmt.Println("errcode:", e.Code, "errmsg:", e.Msg)
 	}
 }
@@ -132,10 +132,10 @@ SDK 内部已自动完成签名，如需自行校验消息推送（如 `xpay_goo
 
 ```go
 // 支付签名 pay_sig = hex(hmac_sha256(app_key, uri + '&' + post_body))
-sig := wxvpay.PaySig(appKey, "/xpay/query_user_balance", postBody)
+sig := xpay.PaySig(appKey, "/xpay/query_user_balance", postBody)
 
 // 用户态签名 signature = hex(hmac_sha256(session_key, post_body))
-sig := wxvpay.UserSignature(sessionKey, postBody)
+sig := xpay.UserSignature(sessionKey, postBody)
 ```
 
 ## License

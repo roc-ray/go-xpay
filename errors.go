@@ -1,4 +1,4 @@
-package wxvpay
+package xpay
 
 import (
 	"bytes"
@@ -20,7 +20,7 @@ type APIError struct {
 }
 
 func (e *APIError) Error() string {
-	return fmt.Sprintf("wxvpay: %s errcode=%d errmsg=%s", e.URI, e.Code, e.Msg)
+	return fmt.Sprintf("xpay: %s errcode=%d errmsg=%s", e.URI, e.Code, e.Msg)
 }
 
 // 虚拟支付常用错误码（完整列表见官方文档）。

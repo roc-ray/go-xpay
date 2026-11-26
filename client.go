@@ -1,4 +1,4 @@
-package wxvpay
+package xpay
 
 import (
 	"context"
@@ -44,16 +44,16 @@ type Client struct {
 // New 创建虚拟支付客户端。
 func New(cfg Config) (*Client, error) {
 	if cfg.TokenProvider == nil {
-		return nil, errors.New("wxvpay: TokenProvider 不能为空（access_token 统一由外部传入）")
+		return nil, errors.New("xpay: TokenProvider 不能为空（access_token 统一由外部传入）")
 	}
 	if cfg.AppKey == "" {
-		return nil, errors.New("wxvpay: AppKey 不能为空（获取自小程序后台「虚拟支付-支付基础配置」）")
+		return nil, errors.New("xpay: AppKey 不能为空（获取自小程序后台「虚拟支付-支付基础配置」）")
 	}
 	if cfg.Env != EnvProduction && cfg.Env != EnvSandbox {
-		return nil, fmt.Errorf("wxvpay: 非法 Env 值 %d（仅支持 0-正式 / 1-沙箱）", cfg.Env)
+		return nil, fmt.Errorf("xpay: 非法 Env 值 %d（仅支持 0-正式 / 1-沙箱）", cfg.Env)
 	}
 	if cfg.Env == EnvSandbox && cfg.SandboxKey == "" {
-		return nil, errors.New("wxvpay: 沙箱环境必须配置 SandboxKey")
+		return nil, errors.New("xpay: 沙箱环境必须配置 SandboxKey")
 	}
 	if cfg.HTTPClient == nil {
 		cfg.HTTPClient = &http.Client{Timeout: 15 * time.Second}
@@ -85,7 +85,7 @@ func (c *Client) post(ctx context.Context, uri string, body any, opt requestOpti
 
 	raw, err := json.Marshal(body)
 	if err != nil {
-		return fmt.Errorf("wxvpay: 序列化请求体失败: %w", err)
+		return fmt.Errorf("xpay: 序列化请求体失败: %w", err)
 	}
 
 	token, err := c.getAccessToken(ctx)
@@ -99,35 +99,35 @@ func (c *Client) post(ctx context.Context, uri string, body any, opt requestOpti
 	}
 	if opt.needUserSig {
 		if opt.sessionKey == "" {
-			return errors.New("wxvpay: 该接口需要用户态签名，sessionKey 不能为空")
+			return errors.New("xpay: 该接口需要用户态签名，sessionKey 不能为空")
 		}
 		q += "&signature=" + UserSignature(opt.sessionKey, string(raw))
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, apiBaseURL+q, bytesReader(raw))
 	if err != nil {
-		return fmt.Errorf("wxvpay: 构造请求失败: %w", err)
+		return fmt.Errorf("xpay: 构造请求失败: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.http.Do(req)
 	if err != nil {
-		return fmt.Errorf("wxvpay: 请求 %s 失败: %w", uri, err)
+		return fmt.Errorf("xpay: 请求 %s 失败: %w", uri, err)
 	}
 	defer resp.Body.Close()
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("wxvpay: 读取响应失败: %w", err)
+		return fmt.Errorf("xpay: 读取响应失败: %w", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("wxvpay: %s http_status=%d body=%s", uri, resp.StatusCode, truncate(data, 512))
+		return fmt.Errorf("xpay: %s http_status=%d body=%s", uri, resp.StatusCode, truncate(data, 512))
 	}
 
 	// 先解出公共错误码
 	var base baseResp
 	if err := json.Unmarshal(data, &base); err != nil {
-		return fmt.Errorf("wxvpay: 解析响应失败: %w body=%s", err, truncate(data, 512))
+		return fmt.Errorf("xpay: 解析响应失败: %w body=%s", err, truncate(data, 512))
 	}
 	if base.ErrCode != 0 {
 		return &APIError{Code: base.ErrCode, Msg: base.ErrMsg, URI: uri}
@@ -135,7 +135,7 @@ func (c *Client) post(ctx context.Context, uri string, body any, opt requestOpti
 
 	if out != nil && len(data) > 0 {
 		if err := json.Unmarshal(data, out); err != nil {
-			return fmt.Errorf("wxvpay: 解析响应失败: %w body=%s", err, truncate(data, 512))
+			return fmt.Errorf("xpay: 解析响应失败: %w body=%s", err, truncate(data, 512))
 		}
 	}
 	return nil
@@ -164,10 +164,10 @@ func injectEnv(body any, env int) {
 func (c *Client) getAccessToken(ctx context.Context) (string, error) {
 	token, err := c.cfg.TokenProvider(ctx)
 	if err != nil {
-		return "", fmt.Errorf("wxvpay: TokenProvider 获取 access_token 失败: %w", err)
+		return "", fmt.Errorf("xpay: TokenProvider 获取 access_token 失败: %w", err)
 	}
 	if token == "" {
-		return "", errors.New("wxvpay: TokenProvider 返回的 access_token 为空")
+		return "", errors.New("xpay: TokenProvider 返回的 access_token 为空")
 	}
 	return token, nil
 }

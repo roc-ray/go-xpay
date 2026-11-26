@@ -1,4 +1,4 @@
-package wxvpay
+package xpay
 
 import (
 	"crypto/hmac"

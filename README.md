@@ -1,4 +1,4 @@
-# wx-vpay
+# go-vpay
 
 微信小程序【虚拟支付】（xpay）服务端 API 的 Go SDK，零第三方依赖，仅使用标准库。
 
@@ -14,7 +14,7 @@
 ## 安装
 
 ```bash
-go get github.com/roc-ray/wx-vpay
+go get github.com/roc-ray/go-vpay
 ```
 
 ## 快速开始
@@ -26,7 +26,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/roc-ray/wx-vpay"
+	"github.com/roc-ray/go-vpay"
 )
 
 func main() {
